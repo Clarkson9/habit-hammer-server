@@ -8,7 +8,7 @@ router
 
 router
 	.route("/:id")
-	.get(habitController.editHabit)
-	.post(habitController.deleteHabit);
+	.put(habitController.editHabit)
+	.delete(habitController.deleteHabit);
 
 module.exports = router;
