@@ -18,6 +18,15 @@ app.get("/", (_req, res) => {
 	res.send("Server is live on PORT: " + PORT);
 });
 
+/**
+ * Route API calls
+ */
+const userRoutes = require("./routes/user");
+app.use("/user", userRoutes);
+
+const habitRoutes = require("./routes/habit");
+app.use("/habit", habitRoutes);
+
 app.listen(PORT, () => {
 	console.log("Server is listening on port " + PORT);
 });
