@@ -34,7 +34,7 @@ exports.seed = async function (knex) {
 			user_id: 2,
 			habit_name: "Take at least 6,000 steps",
 			habit_why: "Improve overall health",
-			streak: 64,
+			streak: 60,
 			progress: 64,
 		},
 		{
