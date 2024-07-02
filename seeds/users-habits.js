@@ -10,6 +10,7 @@ exports.seed = async function (knex) {
 	// Insert seed data
 	await knex("user").insert([
 		{ id: 1, first_name: "Alex", email: "test@gmail.com", password: "test" },
+		{ id: 2, first_name: "John", email: "doe@gmail.com", password: "testtest" },
 	]);
 	await knex("habit").insert([
 		{
@@ -27,6 +28,22 @@ exports.seed = async function (knex) {
 			habit_why: "Admiral William McRaven",
 			streak: 0,
 			progress: 0,
+		},
+		{
+			id: 3,
+			user_id: 2,
+			habit_name: "Take at least 6,000 steps",
+			habit_why: "Improve overall health",
+			streak: 64,
+			progress: 64,
+		},
+		{
+			id: 4,
+			user_id: 2,
+			habit_name: "Stretch for at least 30 minutes a day",
+			habit_why: "Improve overall health",
+			streak: 11,
+			progress: 55,
 		},
 	]);
 };
