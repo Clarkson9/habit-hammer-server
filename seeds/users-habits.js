@@ -40,10 +40,18 @@ exports.seed = async function (knex) {
 		{
 			id: 4,
 			user_id: 2,
-			habit_name: "Stretch for at least 30 minutes a day",
+			habit_name: "Stretch for at least 30 minutes",
 			habit_why: "Improve overall health",
 			streak: 11,
 			progress: 55,
+		},
+		{
+			id: 5,
+			user_id: 2,
+			habit_name: "Drink at least 3 liters of water",
+			habit_why: "Improve overall health",
+			streak: 24,
+			progress: 34,
 		},
 	]);
 };
