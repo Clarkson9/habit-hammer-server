@@ -146,9 +146,33 @@ const deleteHabit = async (req, res) => {
 	}
 };
 
+const completeHabit = async (req, res) => {
+	try {
+		const rowsUpdated = await knex("habit")
+			.where({ id: req.params.id })
+			.increment({ streak: 1, progress: 1 });
+
+		if (rowsUpdated === 0) {
+			return res.status(404).json({
+				message: `Habit with ID "${habit_id}" not found`,
+			});
+		}
+
+		const updatedHabit = await knex("habit").where({
+			id: req.params.id,
+		});
+		res.json(updatedHabit);
+	} catch (error) {
+		res.status(500).json({
+			message: `Unable to complete habit: ${error}`,
+		});
+	}
+};
+
 module.exports = {
 	getHabitList,
 	addHabit,
 	editHabit,
 	deleteHabit,
+	completeHabit,
 };
