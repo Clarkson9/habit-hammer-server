@@ -15,6 +15,7 @@ exports.up = function (knex) {
 		table.string("habit_why").notNullable();
 		table.integer("streak").unsigned().defaultTo(0);
 		table.integer("progress").unsigned().defaultTo(0);
+		table.timestamp("last_complete").nullable();
 		table.timestamp("created_at").defaultTo(knex.fn.now());
 		table
 			.timestamp("updated_at")
