@@ -150,7 +150,8 @@ const completeHabit = async (req, res) => {
 	try {
 		const rowsUpdated = await knex("habit")
 			.where({ id: req.params.id })
-			.increment({ streak: 1, progress: 1 });
+			.increment({ streak: 1, progress: 1 })
+			.update({ last_complete: knex.fn.now() });
 
 		if (rowsUpdated === 0) {
 			return res.status(404).json({
