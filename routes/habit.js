@@ -11,4 +11,6 @@ router
 	.put(habitController.editHabit)
 	.delete(habitController.deleteHabit);
 
+router.route("/:id/complete").put(habitController.completeHabit);
+
 module.exports = router;
