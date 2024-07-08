@@ -13,8 +13,8 @@ exports.up = function (knex) {
 			.onDelete("CASCADE");
 		table.string("habit_name").notNullable();
 		table.string("habit_why").notNullable();
-		table.integer("streak").notNullable();
-		table.integer("progress").notNullable();
+		table.integer("streak").unsigned().defaultTo(0);
+		table.integer("progress").unsigned().defaultTo(0);
 		table.timestamp("created_at").defaultTo(knex.fn.now());
 		table
 			.timestamp("updated_at")
