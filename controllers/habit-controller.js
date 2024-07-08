@@ -68,76 +68,81 @@ const addHabit = async (req, res) => {
 };
 
 const editHabit = async (req, res) => {
+	// Header id used to identify a specific user
+	const { id } = req.headers;
+	const {
+		id: habit_id,
+		habit: { name, why },
+	} = req.body;
+
+	// Verify id is present in req.headers
+	if (!id) {
+		return res
+			.status(400)
+			.send("Failed to create new habit. No user id found in request header.");
+	}
+
+	// Verify that all expected req.body keys are present (all fields are required)
+	const reqBodyKeys = Object.keys(req.body.habit);
+
+	if (!reqBodyKeys.includes("name") || !reqBodyKeys.includes("why")) {
+		return res
+			.status(400)
+			.send("Failed to create new habit. All form fields are required.");
+	}
+
+	// ************ REVISIT THE ABOVE VALIDATION LATER ************
+	// ******* add and edit habit can share validation --> factor out logic *******
+
+	// Passed validation, create new habit object
+	const newHabit = {
+		habit_name: name,
+		habit_why: why,
+	};
+
+	// Update habit after validation
 	try {
-		// Header id used to identify a specific user
-		const { id } = req.headers;
-		const {
+		const rowsUpdated = await knex("habit")
+			.where({ id: habit_id })
+			.update(newHabit);
+
+		if (rowsUpdated === 0) {
+			return res.status(404).json({
+				message: `Habit with ID "${habit_id}" not found`,
+			});
+		}
+
+		const updatedHabit = await knex("habit").where({
 			id: habit_id,
-			habit: { name, why },
-		} = req.body;
-
-		// Verify id is present in req.headers
-		if (!id) {
-			return res
-				.status(400)
-				.send(
-					"Failed to create new habit. No user id found in request header."
-				);
-		}
-
-		// Verify that all expected req.body keys are present (all fields are required)
-		const reqBodyKeys = Object.keys(req.body.habit);
-
-		if (!reqBodyKeys.includes("name") || !reqBodyKeys.includes("why")) {
-			return res
-				.status(400)
-				.send("Failed to create new habit. All form fields are required.");
-		}
-
-		// ************ REVISIT THE ABOVE VALIDATION LATER ************
-		// ******* add and edit habit can share validation --> factor out logic *******
-
-		// Passed validation, create new habit object
-		const newHabit = {
-			habit_name: name,
-			habit_why: why,
-		};
-
-		// Update habit after validation
-		try {
-			const rowsUpdated = await knex("habit")
-				.where({ id: habit_id })
-				.update(newHabit);
-
-			if (rowsUpdated === 0) {
-				return res.status(404).json({
-					message: `Habit with ID "${habit_id}" not found`,
-				});
-			}
-
-			const updatedHabit = await knex("habit").where({
-				id: habit_id,
-			});
-			res.json(updatedHabit);
-		} catch (error) {
-			res.status(500).json({
-				message: `Unable to update habit with ID ${habit_id}`,
-			});
-		}
-
-		// res.status(200).send("This is the PUT /habit/:id endpoint");
-	} catch (err) {
-		// res.status(400).send(`Error retrieving Users: ${err}`);
+		});
+		res.json(updatedHabit);
+	} catch (error) {
+		res.status(500).json({
+			message: `Unable to update habit with ID ${habit_id}`,
+		});
 	}
 };
 
 const deleteHabit = async (req, res) => {
 	try {
-		// const data = await knex("user");
-		// res.status(200).json(data);
-		res.status(200).send("This is the DELETE /habit/:id endpoint");
-	} catch (err) {
-		// res.status(400).send(`Error retrieving Users: ${err}`);
+		const rowsDeleted = await knex("habit")
+			.where({ user_id: req.headers.id })
+			.where({ id: req.params.id })
+			.delete();
+
+		if (rowsDeleted === 0) {
+			return res
+				.status(404)
+				.json({ message: `Record with ID: ${req.params.id} not found` });
+		}
+
+		res.sendStatus(204);
+
+		// res.status(200).send("This is the DELETE /habit/:id endpoint");
+	} catch (error) {
+		res.status(500).json({
+			message: `Unable to delete habit: ${error}`,
+		});
 	}
 };
 
