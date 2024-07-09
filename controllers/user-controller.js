@@ -1,5 +1,6 @@
 const knex = require("knex")(require("../knexfile"));
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
 	const { first_name, email, password, password_confirm } = req.body;
