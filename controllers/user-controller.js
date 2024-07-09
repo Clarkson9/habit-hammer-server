@@ -2,10 +2,15 @@ const knex = require("knex")(require("../knexfile"));
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const { JWT_KEY } = process.env;
+
 const register = async (req, res) => {
 	const { first_name, email, password, password_confirm } = req.body;
 
-	// ***** add check if email already exists in db *****
+	const checkEmail = await knex("user").where({ email: email });
+	if (checkEmail.length > 0) {
+		return res.send("That email already exists.");
+	}
 
 	if (password != password_confirm) {
 		return res.status(400).send("Passwords do not match.");
@@ -21,11 +26,11 @@ const register = async (req, res) => {
 	};
 
 	try {
-		const result = await knex("user").insert(newUser);
+		let result = await knex("user").insert(newUser);
+		const newUserId = result[0];
 
-		// Maybe come back and add JWT auth
-
-		res.status(201).send("New user successfully created.");
+		let token = jwt.sign({ userId: newUserId }, JWT_KEY);
+		res.status(201).json({ token });
 	} catch (error) {
 		res.status(500).json({
 			message: `Unable to create new user: ${error}`,
