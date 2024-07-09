@@ -58,7 +58,14 @@ const login = async (req, res) => {
 	}
 
 	try {
-		res.status(200).send("This is the POST /user/login endpoint");
+		const userId = await knex("user")
+			.select("id")
+			.where({ email: email })
+			.first();
+		const { id } = userId;
+
+		let token = jwt.sign({ userId: id }, JWT_KEY);
+		res.status(200).json({ token });
 	} catch (error) {
 		res.status(500).json({
 			message: `Unable to create new user: ${error}`,
