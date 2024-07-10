@@ -9,7 +9,7 @@ const register = async (req, res) => {
 
 	const checkEmail = await knex("user").where({ email: email });
 	if (checkEmail.length > 0) {
-		return res.send("That email already exists.");
+		return res.status(409).send("That email already exists.");
 	}
 
 	if (password != password_confirm) {
@@ -45,12 +45,12 @@ const login = async (req, res) => {
 		.select("password")
 		.where({ email: email })
 		.first();
-	const { password: hashedPassword } = hash;
 
 	if (!hash) {
 		return res.status(400).send(`No user found with email ${email}`);
 	}
 
+	const { password: hashedPassword } = hash;
 	const isValid = await bcrypt.compare(password, hashedPassword);
 
 	if (!isValid) {
@@ -68,7 +68,7 @@ const login = async (req, res) => {
 		res.status(200).json({ token });
 	} catch (error) {
 		res.status(500).json({
-			message: `Unable to create new user: ${error}`,
+			message: `Unable to find user: ${error}`,
 		});
 	}
 };
