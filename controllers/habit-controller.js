@@ -6,7 +6,14 @@ const getHabitList = async (req, res) => {
 
 	try {
 		const habitList = await knex("habit")
-			.select("id", "habit_name", "habit_why", "streak", "progress")
+			.select(
+				"id",
+				"habit_name",
+				"habit_why",
+				"streak",
+				"progress",
+				"last_complete"
+			)
 			.where({ user_id: userId });
 		return res.status(200).json(habitList);
 	} catch (error) {
@@ -61,17 +68,18 @@ const addHabit = async (req, res) => {
 
 const editHabit = async (req, res) => {
 	const { id } = req.params;
-	const {
-		habit: { name, why },
-	} = req.body;
+	const { habit_name, habit_why } = req.body;
 
 	// Verify that all expected req.body keys are present (all fields are required)
-	const reqBodyKeys = Object.keys(req.body.habit);
+	const reqBodyKeys = Object.keys(req.body);
 
-	if (!reqBodyKeys.includes("name") || !reqBodyKeys.includes("why")) {
+	if (
+		!reqBodyKeys.includes("habit_name") ||
+		!reqBodyKeys.includes("habit_why")
+	) {
 		return res
 			.status(400)
-			.send("Failed to create new habit. All form fields are required.");
+			.send("Failed to update habit. All form fields are required.");
 	}
 
 	// ************ REVISIT THE ABOVE VALIDATION LATER ************
@@ -79,8 +87,8 @@ const editHabit = async (req, res) => {
 
 	// Passed validation, create new habit object
 	const newHabit = {
-		habit_name: name,
-		habit_why: why,
+		habit_name,
+		habit_why,
 	};
 
 	// Update habit after validation
