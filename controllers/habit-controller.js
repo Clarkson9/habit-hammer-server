@@ -1,15 +1,21 @@
 const knex = require("knex")(require("../knexfile"));
 
 const getHabitList = async (req, res) => {
-	// Header id used to specify which user's habits to retrieve
-	const { id } = req.headers;
+	// Get userId from jwt token
+	const { userId } = req.decoded;
 
 	try {
 		const habitList = await knex("habit")
-			.select("id", "habit_name", "habit_why", "streak", "progress")
-			.where({ user_id: id });
+			.select(
+				"id",
+				"habit_name",
+				"habit_why",
+				"streak",
+				"progress",
+				"last_complete"
+			)
+			.where({ user_id: userId });
 		return res.status(200).json(habitList);
-		// res.status(200).send("This is the GET /habit endpoint");
 	} catch (error) {
 		console.error("Error getting habit list:", error);
 		res.status(500).json({
@@ -19,16 +25,9 @@ const getHabitList = async (req, res) => {
 };
 
 const addHabit = async (req, res) => {
-	// Header id used to identify a specific user
-	const { id } = req.headers;
+	// Get userId from jwt token
+	const { userId } = req.decoded;
 	const { habit_name, habit_why } = req.body;
-
-	// Verify id is present in req.headers
-	if (!id) {
-		return res
-			.status(400)
-			.send("Failed to create new habit. No user id found in request header.");
-	}
 
 	// Verify that all expected req.body keys are present (all fields are required)
 	const reqBodyKeys = Object.keys(req.body);
@@ -46,7 +45,7 @@ const addHabit = async (req, res) => {
 
 	// Passed validation, create new habit
 	const newHabit = {
-		user_id: id,
+		user_id: userId,
 		habit_name,
 		habit_why,
 	};
@@ -68,27 +67,19 @@ const addHabit = async (req, res) => {
 };
 
 const editHabit = async (req, res) => {
-	// Header id used to identify a specific user
-	const { id } = req.headers;
-	const {
-		id: habit_id,
-		habit: { name, why },
-	} = req.body;
-
-	// Verify id is present in req.headers
-	if (!id) {
-		return res
-			.status(400)
-			.send("Failed to create new habit. No user id found in request header.");
-	}
+	const { id } = req.params;
+	const { habit_name, habit_why } = req.body;
 
 	// Verify that all expected req.body keys are present (all fields are required)
-	const reqBodyKeys = Object.keys(req.body.habit);
+	const reqBodyKeys = Object.keys(req.body);
 
-	if (!reqBodyKeys.includes("name") || !reqBodyKeys.includes("why")) {
+	if (
+		!reqBodyKeys.includes("habit_name") ||
+		!reqBodyKeys.includes("habit_why")
+	) {
 		return res
 			.status(400)
-			.send("Failed to create new habit. All form fields are required.");
+			.send("Failed to update habit. All form fields are required.");
 	}
 
 	// ************ REVISIT THE ABOVE VALIDATION LATER ************
@@ -96,39 +87,36 @@ const editHabit = async (req, res) => {
 
 	// Passed validation, create new habit object
 	const newHabit = {
-		habit_name: name,
-		habit_why: why,
+		habit_name,
+		habit_why,
 	};
 
 	// Update habit after validation
 	try {
-		const rowsUpdated = await knex("habit")
-			.where({ id: habit_id })
-			.update(newHabit);
+		const rowsUpdated = await knex("habit").where({ id: id }).update(newHabit);
 
 		if (rowsUpdated === 0) {
 			return res.status(404).json({
-				message: `Habit with ID "${habit_id}" not found`,
+				message: `Habit with ID "${id}" not found`,
 			});
 		}
 
 		const updatedHabit = await knex("habit").where({
-			id: habit_id,
+			id: id,
 		});
 		res.json(updatedHabit);
 	} catch (error) {
 		res.status(500).json({
-			message: `Unable to update habit with ID ${habit_id}`,
+			message: `Unable to update habit with ID ${id}`,
 		});
 	}
 };
 
 const deleteHabit = async (req, res) => {
+	const { id } = req.params;
+
 	try {
-		const rowsDeleted = await knex("habit")
-			.where({ user_id: req.headers.id })
-			.where({ id: req.params.id })
-			.delete();
+		const rowsDeleted = await knex("habit").where({ id: id }).delete();
 
 		if (rowsDeleted === 0) {
 			return res
@@ -137,8 +125,6 @@ const deleteHabit = async (req, res) => {
 		}
 
 		res.sendStatus(204);
-
-		// res.status(200).send("This is the DELETE /habit/:id endpoint");
 	} catch (error) {
 		res.status(500).json({
 			message: `Unable to delete habit: ${error}`,
